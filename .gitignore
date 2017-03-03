@@ -69,3 +69,5 @@ jspm_packages
 .npm
 # Optional REPL history
 .node_repl_history
+
+.byebug_history

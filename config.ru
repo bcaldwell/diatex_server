@@ -3,7 +3,7 @@ require 'bundler'
 
 Bundler.require
 
-require './config/initializers'
+require './config/application'
 
 require './server'
 run Diatex
