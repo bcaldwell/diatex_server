@@ -5,5 +5,5 @@ name: diatex-server
 # Define dependencies to run this service.
 up:
   - ruby: 2.4.0
-  - node: 6.10.0
+  - node: "v6.10.0"
   - bundler
