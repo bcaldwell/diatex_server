@@ -15,7 +15,7 @@ class ImageMaker
       # branch: "gh-pages",
       file: image_path
     )
-    { title: title, url: url(git_cdn_repo, remote_path) }
+    { title: title, url: url(remote_path) }
   end
 
   def remote_image_path(remote_path)
@@ -23,11 +23,11 @@ class ImageMaker
   end
 
   def url(remote_path)
-    "https://gitcdn.bcaldwell.ca/#{remote_image_path(remote_path)}"
+    "https://benjamincaldwell.github.io/gitcdn/#{remote_image_path(remote_path)}"
   end
 
   def exists?(remote_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])
-    url = url(git_cdn_repo, remote_path)
+    url = url(remote_path)
     puts url
     res = Net::HTTP.get_response(URI(url))
     res.code == '200'

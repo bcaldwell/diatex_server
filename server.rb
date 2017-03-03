@@ -50,7 +50,7 @@ class Diatex < Sinatra::Base
     
     FileUtils.rm(new_path)
 
-    { input: params[:latex], url: json_hash[:url] }
+    return { input: params[:latex], url: json_hash[:url] }.to_json
   end
 
   get '/diagram' do
