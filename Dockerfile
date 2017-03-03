@@ -1,6 +1,6 @@
 FROM ruby:2.4
 
-RUN apt-get update && apt-get install texlive-full
+RUN apt-get update && apt-get install -y texlive-full
 
 # node stuff from https://github.com/nodejs/docker-node/blob/0f8446512970e9330a95e417deaa0200dc9790cf/6.10/Dockerfile
 
