@@ -7,8 +7,8 @@ def request(url, body)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = (uri.port == 443)
   request = Net::HTTP::Post.new(uri.request_uri, 'Content-Type' => 'application/json')
-  # request.basic_auth('diatex', ENV['DIATEX_PASSWORD'])
-  # request.basic_auth('diatex', "hi")
+  request.basic_auth('diatex', ENV['DIATEX_PASSWORD'])
+  request.basic_auth('diatex', "hi")
   # request.body = body.to_json
   request.form_data = body
   response = http.request(request)

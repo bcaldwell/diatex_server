@@ -13,10 +13,9 @@ require './lib/sequence_diagram'
 
 class Diatex < Sinatra::Base
   include SequenceDiagram
-  # use Rack::Auth::Basic, "Restricted Area" do |username, password|
-  #   byebug
-  #   username == 'diatex' and password == Application.secrets[:diatex_password]
-  # end
+  use Rack::Auth::Basic, "Restricted Area" do |username, password|
+    username == 'diatex' and password == Application.secrets[:diatex_password]
+  end
 
   get '/' do
     "Welcome to DiaTeX server"
@@ -70,7 +69,9 @@ class Diatex < Sinatra::Base
     remote_path = "diagram/#{uid}.png"
 
     # Check Cache First
-    return if image_cache(diagram, remote_path)
+    if cache = image_cache(diagram, remote_path)
+      return cache
+    end
 
     # Generate Image
     success, png_path = convert_mermaid_to_png(diagram)
