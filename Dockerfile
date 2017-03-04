@@ -42,7 +42,7 @@ RUN gem install bundler
 
 RUN bundle install
 
-RUN yarn global add mermaid
+RUN npm install -g mermaid
 
 RUN wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-${PHANTOMJS_VERSION}-linux-x86_64.tar.bz2 && \
     tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2 -C /usr/local/share/ && \
