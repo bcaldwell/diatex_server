@@ -42,4 +42,6 @@ RUN gem install bundler
 
 RUN bundle install
 
+EXPOSE 80
+
 CMD ["exec", "rackup", "-p", "80",  "--host", "0.0.0.0"]
