@@ -1,5 +1,3 @@
-require 'logger'
-
 class ImageMaker
   def create_image(title, remote_path, image_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])
     image_path = image_path.path if image_path.respond_to?('path')

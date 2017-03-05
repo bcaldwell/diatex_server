@@ -1,11 +1,5 @@
 require 'sinatra'
 require 'json'
-require 'logger'
-# require "sinatra/json"
-# require 'calculus'
-
-require 'byebug'
-require 'tmpdir'
 
 require './lib/image_maker'
 require './lib/sequence_diagram'
