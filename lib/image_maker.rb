@@ -19,8 +19,8 @@ class ImageMaker
     "images/diatex/#{remote_path}"
   end
 
-  def url(remote_path)
-    "http://gitcdn.bcaldwell.ca/#{remote_image_path(remote_path)}"
+  def url(remote_path, git_cdn_url = Application.secrets[:default_git_cdn_url])
+    "http://#{git_cdn_url}/#{remote_image_path(remote_path)}"
   end
 
   def exists?(remote_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])

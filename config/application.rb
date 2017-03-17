@@ -35,6 +35,12 @@ module Application
     @@log.warn "ERROR: Default github cdn was not provided"
   end
 
+  @secrets[:default_git_cdn_url] = ENV['DEFAULT_GIT_CDN_URL']
+
+  if @secrets[:default_git_cdn_url].nil? || @secrets[:default_git_cdn_url].empty?
+    @@log.warn "ERROR: Default github cdn was not provided"
+  end
+
   github_key = ENV["GITHUB_KEY"]
 
   if github_key.nil? || github_key.empty?
