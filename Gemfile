@@ -9,8 +9,10 @@ gem 'calculus', git: 'https://github.com/jules2689/calculus.git'
 # Github
 gem 'octokit'
 
+gem 'puma'
 group :development, :test do
   gem 'byebug'
   gem 'pry-byebug'
   gem 'pry'
+  gem "sinatra-contrib"
 end
