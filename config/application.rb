@@ -1,6 +1,9 @@
 require 'tmpdir'
 require 'logger'
 require 'octokit'
+require 'open3'
+require 'pathname'
+require 'json'
 
 module Application
   # we don't want to instantiate this class - it's a singleton,
@@ -14,7 +17,7 @@ module Application
 
   attr_accessor :constants, :secrets, :logger, :GithubClient
   # Main Path
-  temp = Dir.tmpdir() 
+  temp = Dir.tmpdir()
   output_temp_dir = File.join(temp, 'diatex').freeze
   FileUtils.mkdir_p(output_temp_dir) unless File.exist?(output_temp_dir)
 
@@ -26,26 +29,56 @@ module Application
   @constants[:TEMP_IMAGES] = "#{output_temp_dir}/images".freeze
   FileUtils.mkdir_p(@constants[:TEMP_IMAGES]) unless File.exist?(@constants[:TEMP_IMAGES])
 
-  @secrets[:diatex_password] = ENV["DIATEX_PASSWORD"]
-  raise "no diatex password set. Set DIATEX_PASSWORD env variable" if @secrets[:diatex_password].nil? || @secrets[:diatex_password].empty?
+  def load_from_ejson(ejson_path)
+    ejson_path = File.absolute_path(ejson_path) unless Pathname.new(ejson_path).absolute?
+    raise "config file: #{ejson_path} not found" unless File.exist?(ejson_path)
 
-  @secrets[:default_git_cdn_repo] = ENV['DEFAULT_GIT_CDN_REPO']
+    encrypted_json = JSON.parse(File.read(ejson_path))
+    public_key = encrypted_json['_public_key']
+    raise "Private key is not listed in #{private_key_path}." unless File.exist?("/opt/ejson/keys/#{public_key}")
 
-  if @secrets[:default_git_cdn_repo].nil? || @secrets[:default_git_cdn_repo].empty?
-    @@log.warn "ERROR: Default github cdn was not provided"
+    output, status = Open3.capture2e("ejson", "decrypt", ejson_path.to_s)
+    raise "ejson: #{output}" unless status.success?
+
+    secrets = JSON.parse(output)
+    secrets = hash_symblize_keys(secrets)
+
+    @secrets.merge!(secrets)
   end
 
-  @secrets[:default_git_cdn_url] = ENV['DEFAULT_GIT_CDN_URL']
+  def load_from_env(keys)
+    secrets = {}
+    keys.each do |key|
+      key = key.to_s
+      next if key.start_with?("_")
+      value = ENV[key.upcase]
+      secrets[key] = value unless value.nil?
+    end
 
-  if @secrets[:default_git_cdn_url].nil? || @secrets[:default_git_cdn_url].empty?
-    @@log.warn "ERROR: Default github cdn was not provided"
+    secrets = hash_symblize_keys(secrets)
+    @secrets.merge!(secrets)
   end
 
-  github_key = ENV["GITHUB_KEY"]
-
-  if github_key.nil? || github_key.empty?
-    @logger.warn "ERROR: Github Key was not provided"
+  def check_required(required = [])
+    required.each { |key| raise "required secrets not set: #{key}" if @secrets[key].nil? }
   end
 
-  Application::GithubClient = Octokit::Client.new(access_token: github_key)
+  def hash_symblize_keys(hash)
+    hash.keys.each do |key|
+      hash[(begin
+        key.to_sym
+      rescue
+        key
+      end) || key] = hash.delete(key)
+    end
+    hash
+  end
+
+  ejson_path = ENV["EJSON_PATH"] || File.join(File.dirname(__FILE__), "secrets.benjamin.ejson")
+  load_from_ejson(ejson_path)
+  required = %i(diatex_password default_git_cdn_repo github_key)
+  load_from_env(required)
+  check_required(required)
+
+  Application::GithubClient = Octokit::Client.new(access_token: @secrets[:github_key])
 end

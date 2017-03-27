@@ -9,11 +9,14 @@ GEM
   specs:
     addressable (2.5.0)
       public_suffix (~> 2.0, >= 2.0.2)
+    backports (3.6.8)
     byebug (9.0.6)
     coderay (1.1.1)
+    ejson (1.0.2)
     faraday (0.11.0)
       multipart-post (>= 1.2, < 3)
     method_source (0.8.2)
+    multi_json (1.12.1)
     multipart-post (2.0.0)
     octokit (4.6.2)
       sawyer (~> 0.8.0, >= 0.5.3)
@@ -25,15 +28,25 @@ GEM
       byebug (~> 9.0)
       pry (~> 0.10)
     public_suffix (2.0.5)
+    puma (3.8.2)
     rack (1.6.5)
     rack-protection (1.5.3)
       rack
+    rack-test (0.6.3)
+      rack (>= 1.0)
     sawyer (0.8.1)
       addressable (>= 2.3.5, < 2.6)
       faraday (~> 0.8, < 1.0)
     sinatra (1.4.8)
       rack (~> 1.5)
       rack-protection (~> 1.4)
+      tilt (>= 1.3, < 3)
+    sinatra-contrib (1.4.7)
+      backports (>= 2.0)
+      multi_json
+      rack-protection
+      rack-test
+      sinatra (~> 1.4.0)
       tilt (>= 1.3, < 3)
     slop (3.6.0)
     tilt (2.0.6)
@@ -44,10 +57,13 @@ PLATFORMS
 DEPENDENCIES
   byebug
   calculus!
+  ejson
   octokit
   pry
   pry-byebug
+  puma
   sinatra
+  sinatra-contrib
 
 BUNDLED WITH
    1.14.5
