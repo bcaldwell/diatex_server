@@ -1,6 +1,6 @@
 FROM ruby:2.4
 
-RUN apt-get update && apt-get install -y texlive-full build-essential chrpath libssl-dev libxft-dev libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev
+RUN apt-get update && apt-get install -y texlive-full build-essential chrpath libssl-dev libxft-dev libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev imagemagick
 
 ENV NODE_VERSION 6.10.0
 ENV PHANTOMJS_VERSION 2.1.1
