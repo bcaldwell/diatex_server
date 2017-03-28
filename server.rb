@@ -6,6 +6,8 @@ require './lib/sequence_diagram'
 
 
 class Diatex < Sinatra::Base
+  require 'sinatra/reloader' if development?
+
   include SequenceDiagram
   use Rack::Auth::Basic, "Restricted Area" do |username, password|
     username == 'diatex' and password == Application.secrets[:diatex_password]
@@ -43,7 +45,7 @@ class Diatex < Sinatra::Base
     FileUtils.mv(png, new_path)
 
     json_hash = ImageMaker.new.create_image("#{uid}.png", remote_path, new_path)
-    
+
     FileUtils.rm(new_path)
 
     { input: params[:latex], url: json_hash[:url] }.to_json
