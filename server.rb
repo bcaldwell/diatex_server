@@ -4,13 +4,18 @@ require 'json'
 require './lib/image_maker'
 require './lib/sequence_diagram'
 
+require "sinatra/reloader" if development?
 
 class Diatex < Sinatra::Base
-  require 'sinatra/reloader' if development?
+  configure :development do
+    register Sinatra::Reloader
+  end
 
   include SequenceDiagram
-  use Rack::Auth::Basic, "Restricted Area" do |username, password|
-    username == 'diatex' and password == Application.secrets[:diatex_password]
+  unless development?
+    use Rack::Auth::Basic, "Restricted Area" do |username, password|
+      username == 'diatex' and password == Application.secrets[:diatex_password]
+    end
   end
 
   get '/' do

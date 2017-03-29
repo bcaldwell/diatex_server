@@ -17,5 +17,5 @@ group :development, :test do
   gem 'byebug'
   gem 'pry-byebug'
   gem 'pry'
-  gem "sinatra-contrib"
+  gem 'sinatra-contrib'
 end
