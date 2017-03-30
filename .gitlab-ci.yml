@@ -4,7 +4,7 @@ services:
   - docker:dind
 
 variables:
-  CONTAINER_IMAGE: registry.anuary.com/$CI_PROJECT_PATH
+  CONTAINER_IMAGE: benjamincaldwell/diatex_server
   DOCKER_DRIVER: overlay2
   
 build:
