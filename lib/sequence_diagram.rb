@@ -5,12 +5,13 @@ module SequenceDiagram
     if content.strip.start_with?('gantt')
       gantt_chart(content)
     else
-      mermaid_chart(chart)
+      mermaid_chart(content)
     end
   end
 
   def gantt_chart(content)
     final_image = "#{Application.constants[:TEMP_MERMAID]}/#{Time.now.to_i}.png"
+    Application.logger.info("saving gant chart to #{final_image}")
     Dir.mktmpdir do |dir|
       Charts.render_chart(content, File.join(dir, 'chart.svg'))
       output = `convert #{File.join(dir, 'chart.svg')} #{File.join(dir, 'chart.png')}`
@@ -26,8 +27,8 @@ module SequenceDiagram
     file.write(content)
     file.flush
 
-    cmd = `mermaid #{file.path} --png --outputDir #{Application.constants[:TEMP_MERMAID]}`
-    Rails.logger.info "Running `#{cmd}`"
+    cmd = "mermaid #{file.path} --png --outputDir #{Application.constants[:TEMP_MERMAID]}"
+    Application.logger.info "Running `#{cmd}`"
     output = `#{cmd}`
     file.close
     return [false, output] if $?.exitstatus != 0

@@ -1,22 +1,31 @@
 require 'lib/github_client'
 class ImageMaker
-  def create_image(title, remote_path, image_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])
+  def initialize(git_cdn_repo: Application.secrets[:default_git_cdn_repo], git_cdn_url: Application.secrets[:default_git_cdn_url], branch: 'master')
+    @git_cdn_repo = git_cdn_repo
+    @git_cdn_url = git_cdn_url
+    @branch = branch
+
+    username = @git_cdn_repo.split('/').first
+    return if username.nil?
+    Application.logger.info "Creating client for #{username}"
+
+    @github = GithubClient.new(username: username)
+  end
+
+  def create_image(title, remote_path, image_path)
     image_path = image_path.path if image_path.respond_to?('path')
 
     Application.logger.info("Creating image '#{title}'...")
-    Application.logger.info git_cdn_repo
-    username = git_cdn_repo.split("/").first
-    return if username.nil?
-    Application.logger.info "Creating client for #{username}"
-    github_client = GithubClient.new(username: username)
-    github_client.client.create_contents(
-      git_cdn_repo,
+    Application.logger.info @git_cdn_repo
+
+    @github.client.create_contents(
+      @git_cdn_repo,
       remote_image_path(remote_path),
-        "Adding Image #{remote_path}",
-      branch: "master",
-      # branch: "gh-pages",
+      "Adding Image #{remote_path}",
+      branch: @branch,
       file: image_path
     )
+
     { title: title, url: url(remote_path) }
   end
 
@@ -24,14 +33,29 @@ class ImageMaker
     "images/diatex/#{remote_path}"
   end
 
-  def url(remote_path, git_cdn_url = Application.secrets[:default_git_cdn_url])
-    "http://#{git_cdn_url}/#{remote_image_path(remote_path)}"
+  def url(remote_path)
+    "http://#{@git_cdn_url}/#{remote_image_path(remote_path)}"
   end
 
-  def exists?(remote_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])
+  def exists?(remote_path)
     url = url(remote_path)
     puts url
     res = Net::HTTP.get_response(URI(url))
     res.code == '200'
+  end
+
+  def image_cache(param, remote_path)
+    # Check for Cache
+    if exists?(remote_path)
+      Application.logger.info 'Already made, sending cache'
+      return { input: param, url: url(remote_path) }.to_json
+    end
+
+    if @github.exists?(@git_cdn_repo, remote_image_path(remote_path))
+      Application.logger.info 'Already made, sending cache'
+      return { input: param, url: url(remote_path) }.to_json
+    end
+
+    false
   end
 end

@@ -21,8 +21,12 @@ class Diatex < Sinatra::Base
     end
   end
 
-  # unless development?
-    helpers do
+  helpers do
+    if development?
+      def protected!
+        nil
+      end
+    else
       def protected!
         return if authorized?
         headers['WWW-Authenticate'] = 'Basic realm="Restricted Area"'
@@ -34,7 +38,7 @@ class Diatex < Sinatra::Base
         @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == ['diatex', Application.secrets[:diatex_password]]
       end
     end
-  # end
+  end
 
   get '/' do
     'Welcome to DiaTeX server'
@@ -57,8 +61,10 @@ class Diatex < Sinatra::Base
 
     Application.logger.info "Got latex #{latex}"
 
+    image_maker = ImageMaker.new
+
     # Check Cache First
-    if cache = image_cache(latex, remote_path)
+    if cache = image_maker.image_cache(latex, remote_path)
       return cache
     end
 
@@ -71,7 +77,7 @@ class Diatex < Sinatra::Base
     Application.logger.info exp.inspect
     FileUtils.mv(png, new_path)
 
-    json_hash = ImageMaker.new.create_image("#{uid}.png", remote_path, new_path)
+    json_hash = image_maker.create_image("#{uid}.png", remote_path, new_path)
 
     FileUtils.rm(new_path)
 
@@ -92,8 +98,10 @@ class Diatex < Sinatra::Base
     uid = Digest::MD5.hexdigest(diagram)
     remote_path = "diagram/#{uid}.png"
 
+    image_maker = ImageMaker.new
+
     # Check Cache First
-    if cache = image_cache(diagram, remote_path)
+    if cache = image_maker.image_cache(diagram, remote_path)
       return cache
     end
 
@@ -105,29 +113,7 @@ class Diatex < Sinatra::Base
     end
 
     # Send response
-    json_hash = ImageMaker.new.create_image("#{uid}.png", remote_path, png_path)
+    json_hash = image_maker.create_image("#{uid}.png", remote_path, png_path)
     { input: diagram, url: json_hash[:url] }.to_json
-  end
-
-  private
-
-  def image_cache(param, remote_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])
-    image_maker = ImageMaker.new
-
-    # Check for Cache
-    if image_maker.exists?(remote_path)
-      Application.logger.info 'Already made, sending cache'
-      return { input: param, url: image_maker.url(remote_path) }.to_json
-    end
-
-    username = git_cdn_repo.split('/').first
-    false if username.nil?
-
-    if GithubClient.new(username: username).exists?(git_cdn_repo, image_maker.remote_image_path(remote_path))
-      Application.logger.info 'Already made, sending cache'
-      return { input: param, url: image_maker.url(remote_path) }.to_json
-    end
-
-    false
   end
 end
