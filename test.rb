@@ -24,7 +24,17 @@ def request(url, body)
   end
 end
 
-URL = "http://localhost:32768"
+URL = "http://localhost:9292"
+
+body = """
+gantt
+title testing123
+dateFormat s.SSS
+
+title1 :a1, 0.000, 0.001
+title2  :a1, 0.001, 0.005
+"""
+puts request("#{URL}/diagram", { diagram: body })
 
 body = """
 graph BT

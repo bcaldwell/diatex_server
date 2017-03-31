@@ -12,10 +12,17 @@ GIT
       ttfunk
       victor (= 0.2.1)
 
+GIT
+  remote: https://github.com/octokit/octokit.rb.git
+  revision: 4b343d9bfe5569806b77316efc74596bc67b2593
+  specs:
+    octokit (4.6.2)
+      sawyer (~> 0.8.0, >= 0.5.3)
+
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.5.0)
+    addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
     backports (3.7.0)
     byebug (9.0.6)
@@ -23,11 +30,10 @@ GEM
     ejson (1.0.2)
     faraday (0.11.0)
       multipart-post (>= 1.2, < 3)
+    jwt (1.5.6)
     method_source (0.8.2)
     multi_json (1.12.1)
     multipart-post (2.0.0)
-    octokit (4.6.2)
-      sawyer (~> 0.8.0, >= 0.5.3)
     pry (0.10.4)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -69,7 +75,8 @@ DEPENDENCIES
   calculus!
   charts!
   ejson
-  octokit
+  jwt
+  octokit!
   pry
   pry-byebug
   puma

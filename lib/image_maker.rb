@@ -1,13 +1,18 @@
+require 'lib/github_client'
 class ImageMaker
   def create_image(title, remote_path, image_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])
     image_path = image_path.path if image_path.respond_to?('path')
 
     Application.logger.info("Creating image '#{title}'...")
     Application.logger.info git_cdn_repo
-    Application::GithubClient.create_contents(
+    username = git_cdn_repo.split("/").first
+    return if username.nil?
+    Application.logger.info "Creating client for #{username}"
+    github_client = GithubClient.new(username: username)
+    github_client.client.create_contents(
       git_cdn_repo,
       remote_image_path(remote_path),
-      "Adding Image #{remote_path}",
+        "Adding Image #{remote_path}",
       branch: "master",
       # branch: "gh-pages",
       file: image_path

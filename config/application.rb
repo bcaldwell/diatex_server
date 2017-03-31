@@ -4,7 +4,10 @@ require 'octokit'
 require 'open3'
 require 'pathname'
 require 'json'
+require 'jwt'
 
+
+require 'byebug'
 module Application
   # we don't want to instantiate this class - it's a singleton,
   # so just keep it as a self-extended module
@@ -74,11 +77,25 @@ module Application
     hash
   end
 
+  def new_jwt_token
+    # to replace new lines with \n: awk '{printf "%s\\n", $0}' file
+    private_pem = @secrets[:github_private_pem]
+    private_key = OpenSSL::PKey::RSA.new(private_pem)
+
+    payload = {}.tap do |opts|
+      opts[:iat] = Time.now.to_i           # Issued at time.
+      opts[:exp] = opts[:iat] + 600        # JWT expiration time is 10 minutes from issued time.
+      opts[:iss] = 1943 # Integration's GitHub identifier.
+    end
+
+    JWT.encode(payload, private_key, 'RS256')
+  end
+
   ejson_path = ENV["EJSON_PATH"] || File.join(File.dirname(__FILE__), "secrets.benjamin.ejson")
   load_from_ejson(ejson_path)
-  required = %i(diatex_password default_git_cdn_repo github_key)
+  required = %i(diatex_password default_git_cdn_repo default_git_cdn_url github_private_pem)
   load_from_env(required)
   check_required(required)
 
-  Application::GithubClient = Octokit::Client.new(access_token: @secrets[:github_key])
+  Application::JWT_Client = Octokit::Client.new(bearer_token: new_jwt_token)
 end

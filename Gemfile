@@ -10,11 +10,13 @@ gem 'calculus', git: 'https://github.com/jules2689/calculus.git'
 gem 'charts', git: 'https://github.com/jules2689/charts.git'
 
 # Github
-gem 'octokit'
+gem 'octokit', git: 'https://github.com/octokit/octokit.rb.git'
 
 gem 'puma'
 
 gem 'ejson'
+
+gem 'jwt'
 
 
 group :development, :test do

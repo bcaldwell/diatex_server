@@ -3,8 +3,11 @@ require 'json'
 
 require './lib/image_maker'
 require './lib/sequence_diagram'
+require 'lib/github_client'
 
 require "sinatra/reloader" if development?
+
+require 'byebug'
 
 class Diatex < Sinatra::Base
   configure :development do
@@ -20,6 +23,9 @@ class Diatex < Sinatra::Base
 
   get '/' do
     "Welcome to DiaTeX server"
+  end
+
+  post '/github/webhook' do
   end
 
   post '/latex' do
@@ -81,6 +87,7 @@ class Diatex < Sinatra::Base
       return { error: 'mermaid command did not succeed', input: diagram, output: png_path }.to_json
     end
 
+
     # Send response
     json_hash = ImageMaker.new.create_image("#{uid}.png", remote_path, png_path)
     { input: diagram, url: json_hash[:url] }.to_json
@@ -88,11 +95,19 @@ class Diatex < Sinatra::Base
 
   private
 
-  def image_cache(param, remote_path)
+  def image_cache(param, remote_path, git_cdn_repo = Application.secrets[:default_git_cdn_repo])
     image_maker = ImageMaker.new
 
     # Check for Cache
     if image_maker.exists?(remote_path)
+      Application.logger.info "Already made, sending cache"
+      return { input: param, url: image_maker.url(remote_path) }.to_json
+    end
+
+    username = git_cdn_repo.split("/").first
+    false if username.nil?
+
+    if GithubClient.new(username: username).exists?(git_cdn_repo, image_maker.remote_image_path(remote_path))
       Application.logger.info "Already made, sending cache"
       return { input: param, url: image_maker.url(remote_path) }.to_json
     end
