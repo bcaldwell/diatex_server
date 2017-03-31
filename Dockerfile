@@ -1,12 +1,14 @@
 FROM benjamincaldwell/base-images:diatex-v0.1
 
-COPY . /src/diatex
+RUN gem install bundler
+
+COPY Gemfile Gemfile.lock /src/diatex/
 
 WORKDIR /src/diatex
 
-RUN gem install bundler
-
 RUN bundle install
+
+COPY . /src/diatex
 
 EXPOSE 80
 
