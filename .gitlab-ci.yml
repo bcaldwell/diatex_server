@@ -21,3 +21,6 @@ build:
     - docker
   only:
     - master
+  environment:
+    name: production
+    url: https://diatex.bcaldwell.ca
