@@ -5,7 +5,7 @@ require './lib/image_maker'
 require './lib/sequence_diagram'
 require 'lib/github_client'
 
-require "sinatra/reloader" if development?
+require 'sinatra/reloader' if development?
 
 require 'byebug'
 
@@ -16,23 +16,39 @@ class Diatex < Sinatra::Base
 
   include SequenceDiagram
   unless development?
-    use Rack::Auth::Basic, "Restricted Area" do |username, password|
-      username == 'diatex' and password == Application.secrets[:diatex_password]
+    use Rack::Auth::Basic, 'Restricted Area' do |username, password|
+      username == 'diatex' && password == Application.secrets[:diatex_password]
     end
   end
 
+  # unless development?
+    helpers do
+      def protected!
+        return if authorized?
+        headers['WWW-Authenticate'] = 'Basic realm="Restricted Area"'
+        halt 401, "Not authorized\n"
+      end
+
+      def authorized?
+        @auth ||= Rack::Auth::Basic::Request.new(request.env)
+        @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == ['diatex', Application.secrets[:diatex_password]]
+      end
+    end
+  # end
+
   get '/' do
-    "Welcome to DiaTeX server"
+    'Welcome to DiaTeX server'
   end
 
   post '/github/webhook' do
   end
 
   post '/latex' do
+    protected!
     content_type :json
     if params[:latex].nil?
       status 422
-      return {error: "latex param was not found"}.to_json
+      return { error: 'latex param was not found' }.to_json
     end
 
     latex = CGI.unescape(params[:latex])
@@ -50,7 +66,7 @@ class Diatex < Sinatra::Base
     exp = Calculus::Expression.new(latex, parse: false)
     new_path = File.join(Application.constants[:TEMP_IMAGES], "#{uid}.png")
     png = exp.to_png
-    Application.logger.info "Calculus"
+    Application.logger.info 'Calculus'
     Application.logger.info png
     Application.logger.info exp.inspect
     FileUtils.mv(png, new_path)
@@ -63,13 +79,14 @@ class Diatex < Sinatra::Base
   end
 
   post '/diagram' do
+    protected!
     content_type :json
 
     diagram = params[:diagram]
 
     if diagram.nil?
       status 422
-      return { error: "diagram param was not found" }.to_json
+      return { error: 'diagram param was not found' }.to_json
     end
 
     uid = Digest::MD5.hexdigest(diagram)
@@ -87,7 +104,6 @@ class Diatex < Sinatra::Base
       return { error: 'mermaid command did not succeed', input: diagram, output: png_path }.to_json
     end
 
-
     # Send response
     json_hash = ImageMaker.new.create_image("#{uid}.png", remote_path, png_path)
     { input: diagram, url: json_hash[:url] }.to_json
@@ -100,15 +116,15 @@ class Diatex < Sinatra::Base
 
     # Check for Cache
     if image_maker.exists?(remote_path)
-      Application.logger.info "Already made, sending cache"
+      Application.logger.info 'Already made, sending cache'
       return { input: param, url: image_maker.url(remote_path) }.to_json
     end
 
-    username = git_cdn_repo.split("/").first
+    username = git_cdn_repo.split('/').first
     false if username.nil?
 
     if GithubClient.new(username: username).exists?(git_cdn_repo, image_maker.remote_image_path(remote_path))
-      Application.logger.info "Already made, sending cache"
+      Application.logger.info 'Already made, sending cache'
       return { input: param, url: image_maker.url(remote_path) }.to_json
     end
 
