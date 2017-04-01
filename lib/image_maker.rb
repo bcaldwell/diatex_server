@@ -1,11 +1,11 @@
 require 'lib/github_client'
 class ImageMaker
-  def initialize(git_cdn_repo: Application.secrets[:default_git_cdn_repo], git_cdn_url: Application.secrets[:default_git_cdn_url], branch: 'master')
-    @git_cdn_repo = git_cdn_repo
-    @git_cdn_url = git_cdn_url
+  def initialize(github_repo: Application.secrets[:default_github_repo], cdn_url: Application.secrets[:default_cdn_url], branch: 'master')
+    @github_repo = github_repo
+    @cdn_url = cdn_url
     @branch = branch
 
-    username = @git_cdn_repo.split('/').first
+    username = @github_repo.split('/').first
     return if username.nil?
     Application.logger.info "Creating client for #{username}"
 
@@ -16,10 +16,10 @@ class ImageMaker
     image_path = image_path.path if image_path.respond_to?('path')
 
     Application.logger.info("Creating image '#{title}'...")
-    Application.logger.info @git_cdn_repo
+    Application.logger.info @github_repo
 
     @github.client.create_contents(
-      @git_cdn_repo,
+      @github_repo,
       remote_image_path(remote_path),
       "Adding Image #{remote_path}",
       branch: @branch,
@@ -34,7 +34,7 @@ class ImageMaker
   end
 
   def url(remote_path)
-    "http://#{@git_cdn_url}/#{remote_image_path(remote_path)}"
+    "http://#{@cdn_url}/#{remote_image_path(remote_path)}"
   end
 
   def exists?(remote_path)
@@ -51,7 +51,7 @@ class ImageMaker
       return { input: param, url: url(remote_path) }.to_json
     end
 
-    if @github.exists?(@git_cdn_repo, remote_image_path(remote_path))
+    if @github.exists?(@github_repo, remote_image_path(remote_path))
       Application.logger.info 'Already made, sending cache'
       return { input: param, url: url(remote_path) }.to_json
     end

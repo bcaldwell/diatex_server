@@ -93,7 +93,7 @@ module Application
 
   ejson_path = ENV["EJSON_PATH"] || File.join(File.dirname(__FILE__), "secrets.benjamin.ejson")
   load_from_ejson(ejson_path)
-  required = %i(diatex_password default_git_cdn_repo default_git_cdn_url github_private_pem)
+  required = %i(diatex_password default_github_repo default_cdn_url github_private_pem)
   load_from_env(required)
   check_required(required)
 
