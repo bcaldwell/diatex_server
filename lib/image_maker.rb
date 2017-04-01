@@ -34,8 +34,13 @@ class ImageMaker
   end
 
   def url(remote_path)
-    "http://#{@cdn_url}/#{remote_image_path(remote_path)}"
-  end
+    remote_image = remote_image_path(remote_path)
+		if @cdn_url
+			"http://#{@cdn_url}/#{remote_image}"
+  	else
+			remote_image
+		end
+	end
 
   def exists?(remote_path)
     url = url(remote_path)
@@ -46,7 +51,7 @@ class ImageMaker
 
   def image_cache(param, remote_path)
     # Check for Cache
-    if exists?(remote_path)
+    if @cdn_url && exists?(remote_path)
       Application.logger.info 'Already made, sending cache'
       return { input: param, url: url(remote_path) }.to_json
     end
