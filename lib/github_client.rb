@@ -4,7 +4,6 @@ class GithubClient
   @@cache = {}
 
   def initialize(installation: nil, username: nil)
-    return @client = @@cache[username] if username && @@cache[username]
     installations = jwt_client.find_integration_installations
     if installation.nil? && !username.nil?
       user_install = installations.find do |install|
@@ -19,7 +18,6 @@ class GithubClient
 
     token = jwt_client.create_integration_installation_access_token(installation)
     @client = Octokit::Client.new(access_token: token[:token])
-    @@cache[username] = @client
   end
 
   def exists?(repo, path)
