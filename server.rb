@@ -38,6 +38,11 @@ class Diatex < Sinatra::Base
         @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == ['diatex', Application.secrets[:diatex_password]]
       end
     end
+
+    def parse_params
+      @cdn_url = params[:cdn_url]
+      @github_repo = params[:github_repo]
+    end
   end
 
   get '/' do
@@ -49,7 +54,9 @@ class Diatex < Sinatra::Base
 
   post '/latex' do
     protected!
+    parse_params
     content_type :json
+
     if params[:latex].nil?
       status 422
       return { error: 'latex param was not found' }.to_json
@@ -61,7 +68,7 @@ class Diatex < Sinatra::Base
 
     Application.logger.info "Got latex #{latex}"
 
-    image_maker = ImageMaker.new
+    image_maker = ImageMaker.new(cdn_url: @cdn_url, github_repo: @github_repo)
 
     # Check Cache First
     if cache = image_maker.image_cache(latex, remote_path)
@@ -86,6 +93,7 @@ class Diatex < Sinatra::Base
 
   post '/diagram' do
     protected!
+    parse_params
     content_type :json
 
     diagram = params[:diagram]
@@ -98,7 +106,7 @@ class Diatex < Sinatra::Base
     uid = Digest::MD5.hexdigest(diagram)
     remote_path = "diagram/#{uid}.png"
 
-    image_maker = ImageMaker.new
+    image_maker = ImageMaker.new(cdn_url: @cdn_url, github_repo: @github_repo)
 
     # Check Cache First
     if cache = image_maker.image_cache(diagram, remote_path)
